@@ -26,7 +26,6 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Security setup
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 JWT_SECRET = os.environ.get('JWT_SECRET', secrets.token_urlsafe(32))
 JWT_ALGORITHM = "HS256"
