@@ -44,16 +44,20 @@ def hash_password(password: str) -> str:
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
         password_bytes = password_bytes[:72]
-        password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.hash(password)
+    
+    # Generate salt and hash password
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     # Apply same truncation for verification
     password_bytes = plain_password.encode('utf-8')
     if len(password_bytes) > 72:
         password_bytes = password_bytes[:72]
-        plain_password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.verify(plain_password, hashed_password)
+    
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 # JWT utilities
 def create_access_token(data: dict) -> str:
