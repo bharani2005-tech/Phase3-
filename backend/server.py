@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 import secrets
 import random
