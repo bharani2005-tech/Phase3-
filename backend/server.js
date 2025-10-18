@@ -11,7 +11,12 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://phase3-6jwn.vercel.app", // Your frontend URL
+    credentials: true,
+  })
+);
 
 // Connect to MongoDB
 connectDB();
