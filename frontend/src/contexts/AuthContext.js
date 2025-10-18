@@ -2,27 +2,23 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const AuthContext = createContext({});
+const AuthContext = createContext();
 
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+// ✅ Use .env for backend URL
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
-// Configure axios defaults
-axios.defaults.baseURL = API_URL;
+// ✅ Configure axios
+axios.defaults.baseURL = `${API_URL}/api`;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
+  const [loading, setLoading] = useState(true);
 
-  // Set axios authorization header
+  // ✅ Apply token to axios headers
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -31,54 +27,61 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Check if user is authenticated on app load
+  // ✅ Auto-check logged-in user
   useEffect(() => {
     const checkAuth = async () => {
       if (token) {
         try {
-          const response = await axios.get('/auth/me');
-          setUser(response.data);
-        } catch (error) {
-          console.error('Auth check failed:', error);
+          const res = await axios.get('/auth/me');
+          setUser(res.data.user);
+        } catch (err) {
+          console.error('Auth check failed:', err.response?.data || err.message);
           logout();
         }
       }
       setLoading(false);
     };
-
     checkAuth();
   }, [token]);
 
-  const register = async (userData) => {
+  // ✅ Register user
+  const register = async (data) => {
     try {
-      const response = await axios.post('/auth/register', userData);
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.detail || 'Registration failed';
+      const res = await axios.post('/auth/register', data);
+      toast.success(res.data.message || 'Registration successful!');
+      return res.data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Registration failed';
       toast.error(message);
       throw new Error(message);
     }
   };
 
+  // ✅ Login user
   const login = async (credentials) => {
     try {
-      const response = await axios.post('/auth/login', credentials);
-      const { access_token, user: userData } = response.data;
+      const res = await axios.post('/auth/login', credentials);
       
-      setToken(access_token);
+      // Handle backend response shape
+      const token = res.data.access_token || res.data.token;
+      const userData = res.data.user || null;
+
+      if (!token) throw new Error('Invalid response from server');
+
+      setToken(token);
       setUser(userData);
-      localStorage.setItem('auth_token', access_token);
-      
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.detail || 'Login failed';
+      localStorage.setItem('auth_token', token);
+
+      toast.success(res.data.message || 'Login successful!');
+      return res.data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Login failed';
       toast.error(message);
       throw new Error(message);
     }
   };
 
+  // ✅ Logout user
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -87,49 +90,40 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out successfully');
   };
 
-  const verifyOTP = async (otpData) => {
-    try {
-      const response = await axios.post('/auth/verify-otp', otpData);
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.detail || 'OTP verification failed';
-      toast.error(message);
-      throw new Error(message);
-    }
-  };
-
-  const resendOTP = async (email) => {
-    try {
-      const response = await axios.post('/auth/resend-otp', { email });
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.detail || 'Failed to resend OTP';
-      toast.error(message);
-      throw new Error(message);
-    }
-  };
-
+  // ✅ Forgot password
   const forgotPassword = async (email) => {
     try {
-      const response = await axios.post('/auth/forgot-password', { email });
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.detail || 'Failed to send reset code';
+      const res = await axios.post('/auth/forgot-password', { email });
+      toast.success(res.data.message);
+      return res.data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to send reset code';
       toast.error(message);
       throw new Error(message);
     }
   };
 
-  const resetPassword = async (resetData) => {
+  // ✅ Verify OTP
+  const verifyOTP = async (otpData) => {
     try {
-      const response = await axios.post('/auth/reset-password', resetData);
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.detail || 'Password reset failed';
+      const res = await axios.post('/auth/verify-otp', otpData);
+      toast.success(res.data.message);
+      return res.data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'OTP verification failed';
+      toast.error(message);
+      throw new Error(message);
+    }
+  };
+
+  // ✅ Resend OTP
+  const resendOTP = async (email) => {
+    try {
+      const res = await axios.post('/auth/resend-otp', { email });
+      toast.success(res.data.message);
+      return res.data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to resend OTP';
       toast.error(message);
       throw new Error(message);
     }
@@ -137,20 +131,19 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    loading,
     token,
+    loading,
     register,
     login,
     logout,
+    forgotPassword,
     verifyOTP,
     resendOTP,
-    forgotPassword,
-    resetPassword
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

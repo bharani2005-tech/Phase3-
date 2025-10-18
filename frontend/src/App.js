@@ -7,7 +7,6 @@ import Login from './components/Login';
 import Register from './components/Register';
 import OTPVerification from './components/OTPVerification';
 import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword';
 import Dashboard from './components/Dashboard';
 import LandingPage from './components/LandingPage';
 
@@ -61,9 +60,6 @@ function AppContent() {
         } />
         <Route path="/forgot-password" element={
           <PublicRoute><ForgotPassword /></PublicRoute>
-        } />
-        <Route path="/reset-password" element={
-          <PublicRoute><ResetPassword /></PublicRoute>
         } />
         <Route path="/dashboard" element={
           <ProtectedRoute><Dashboard /></ProtectedRoute>
