@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 const AuthContext = createContext();
 
 // ✅ Use .env for backend URL
-const API_URL = process.env.REACT_APP_BACKEND_URL || "https://phase3-yk5g.vercel.app/";
+const API_URL = process.env.REACT_APP_BACKEND_URL || "https://ua9zkv.vercel.app";
 
 // ✅ Configure axios
 axios.defaults.baseURL = `${API_URL}/api`;
